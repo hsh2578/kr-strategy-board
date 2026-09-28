@@ -1,0 +1,24 @@
+# 자격증명
+.env
+.env.*
+!.env.example
+*appkey*
+*apikey*
+*_secret*
+
+# 원천 데이터·중간산출물 (용량)
+backtest/data/
+backtest/site/
+backtest/.venv/
+backtest/results/*.parquet
+backtest/results/*.png
+backtest/results/cache/
+backtest/results/before_fix/
+backtest/results/after_fix1/
+backtest/results_slip_low/
+backtest/results_slip_zero/
+backtest/results_warn/
+*.log
+__pycache__/
+*.pyc
+.pytest_cache/

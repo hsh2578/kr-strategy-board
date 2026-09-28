@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17171c" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:,">
+<title>전략 검증 보드</title>
+<meta name="description" content="한국 시장 전략 164개를 비용·세금·다중검정까지 반영해 검증한 결과(개인 기록용, 투자 권유 아님)">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uplot@1.6.32/dist/uPlot.min.css" integrity="sha384-IfV0B7MIOYuO95kO9G5ySKPz/85zqFNOAs8iy4tkK5zd9izhJAB8b7lHrwYqqmYE" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/uplot@1.6.32/dist/uPlot.iife.min.js" integrity="sha384-Gx3t0zdBAuQOuvvmaLZj7HKEiSgWTAs+VdtNY7wt19QDPTDQjFIwAuXDj0zeN00c" crossorigin="anonymous"></script>
+<style>
+:root {
+  --page: #f2f4f6; --panel: #ffffff; --hover: #f9fafb; --fill: #f2f4f6; --line: #f2f4f6; --line-2: #e5e8eb;
+  --ink: #191f28; --ink-2: #4e5968; --muted: #626d7a;
+  --up: #f04452; --down: #3182f6; --blue: #3182f6; --blue-ink: #2272eb; --blue-bg: #e8f3ff; --red-bg: #ffeeee; --red-ink: #e42939;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+  --sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #101013; --panel: #17171c; --hover: #202027; --fill: #2c2c35; --line: #232329; --line-2: #33333d;
+    --ink: #e4e4e5; --ink-2: #b0b0b8; --muted: #9e9ea8;
+    --up: #f45c6a; --down: #4f9cf9; --blue: #4f9cf9; --blue-ink: #7fb5ff; --blue-bg: #1d2a44; --red-bg: #3a1f22; --red-ink: #ff8a8a;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #101013; --panel: #17171c; --hover: #202027; --fill: #2c2c35; --line: #232329; --line-2: #33333d;
+  --ink: #e4e4e5; --ink-2: #b0b0b8; --muted: #9e9ea8;
+  --up: #f45c6a; --down: #4f9cf9; --blue: #4f9cf9; --blue-ink: #7fb5ff; --blue-bg: #1d2a44; --red-bg: #3a1f22; --red-ink: #ff8a8a;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; touch-action: manipulation; scrollbar-gutter: stable; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 500 13px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.up { color: var(--up); } .down { color: var(--down); } .dim { color: var(--muted); }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; border-radius: 6px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* 상단 바 */
+.topbar { background: var(--panel); position: sticky; top: 0; z-index: 10; }
+.topbar .in { max-width: 1280px; margin: 0 auto; padding: 0 20px; height: 56px; display: flex; align-items: center; gap: 28px; }
+.brand { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; }
+.nav { display: flex; gap: 22px; height: 100%; }
+.nav button { border: 0; background: none; cursor: pointer; font-size: 15px; font-weight: 500; color: var(--ink-2); padding: 0; height: 100%; }
+.nav button[aria-selected="true"] { color: var(--ink); font-weight: 700; }
+.nav button:hover { color: var(--ink); }
+.asof { margin-left: auto; color: var(--muted); white-space: nowrap; }
+.iconbtn { border: 0; background: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; color: var(--muted); display: grid; place-items: center; }
+.iconbtn:hover { background: var(--fill); color: var(--ink-2); }
+
+/* 본문 패널 */
+.shell { max-width: 1280px; margin: 12px auto 24px; padding: 0 20px; }
+.panel { background: var(--panel); border-radius: 16px; display: grid; grid-template-columns: 200px minmax(0, 1fr); min-height: 70vh; }
+.side { border-right: 1px solid var(--line); padding: 20px 12px; }
+.side h2 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin: 0 8px 10px; }
+.side .grp { font-size: 12px; color: var(--muted); margin: 18px 8px 6px; }
+.side button { display: flex; width: 100%; justify-content: space-between; align-items: center; border: 0; background: none; cursor: pointer;
+  padding: 7px 10px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--ink-2); text-align: left; }
+.side button:hover { background: var(--hover); }
+.side button[aria-current="true"] { background: var(--fill); color: var(--ink); font-weight: 600; }
+.side button .n { color: var(--muted); font-weight: 500; font-size: 12px; }
+.side button .tag { margin-left: 4px; }
+.main { padding: 22px 24px 20px; min-width: 0; }
+.main h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
+.main .lead { color: var(--muted); margin: 2px 0 14px; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; }
+.chipbtn { border: 0; background: var(--fill); color: var(--ink-2); border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 600; cursor: pointer; min-height: 32px;
+  display: inline-flex; align-items: center; gap: 4px; }
+.chipbtn:hover { filter: brightness(0.97); }
+.chipbtn[aria-pressed="true"] { background: var(--blue-bg); color: var(--blue-ink); }
+.filters input.date { width: 108px; font-variant-numeric: tabular-nums; outline-offset: 0;  font: 600 13px var(--sans); border: 0; border-radius: 8px; background: var(--fill); color: var(--ink-2); padding: 6px 8px; min-height: 32px; }
+.filters .to { color: var(--muted); }
+details.cols { position: relative; }
+details.cols summary { list-style: none; }
+details.cols summary::-webkit-details-marker { display: none; }
+details.cols .pop { position: absolute; left: 0; top: calc(100% + 6px); z-index: 5; background: var(--panel); border-radius: 12px; padding: 10px 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.14); display: grid; grid-template-columns: repeat(2, max-content); gap: 2px 18px; color: var(--ink-2); }
+details.cols .pop label { display: inline-flex; gap: 6px; align-items: center; min-height: 28px; cursor: pointer; }
+.note { color: var(--muted); font-size: 12px; margin: 0 0 8px; }
+
+/* 표 */
+#tbl { width: 100%; border-collapse: collapse; }
+#tbl thead th { position: sticky; top: 56px; background: var(--panel); z-index: 1; font-size: 12px; font-weight: 500; color: var(--muted); text-align: right;
+  padding: 9px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+#tbl th.l, #tbl td.l { text-align: left; }
+#tbl th button { all: unset; cursor: pointer; }
+#tbl th button:hover { color: var(--ink-2); }
+#tbl th[aria-sort] button { color: var(--ink); font-weight: 600; }
+#tbl th[aria-sort="ascending"] button::after { content: " ↑"; } #tbl th[aria-sort="descending"] button::after { content: " ↓"; }
+#tbl tbody td { padding: 11px 10px; text-align: right; border-bottom: 1px solid var(--line); font-weight: 500; color: var(--ink); }
+#tbl td.up { color: var(--up); } #tbl td.down { color: var(--down); } #tbl td.dim { color: var(--muted); }
+#tbl tbody tr { cursor: pointer; }
+#tbl tbody tr:hover td { background: var(--hover); }
+#tbl tbody tr.bench td { background: var(--hover); }
+td.rk { color: var(--muted); width: 36px; text-align: center; }
+td.nm { font-weight: 600; }
+td.nm .id { color: var(--muted); font-weight: 500; font-size: 12px; margin-left: 6px; }
+td.nm .why { display: block; color: var(--red-ink); font-weight: 500; font-size: 12px; margin-top: 2px; }
+.tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 5px; border-radius: 4px; background: var(--fill); color: var(--ink-2); vertical-align: 1px; white-space: nowrap; }
+.tag.blue { background: var(--blue-bg); color: var(--blue-ink); }
+.tag.red { background: var(--red-bg); color: var(--red-ink); }
+td.nm .tag { margin-left: 6px; }
+td.cat .tag { font-weight: 500; }
+.legalbar { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 12px; color: var(--muted); font-size: 12px; line-height: 1.7; }
+
+/* 상세 */
+dialog { border: 0; padding: 0; margin: 0 0 0 auto; height: 100%; max-height: 100%; width: min(640px, 100%); max-width: 100%; overscroll-behavior: contain;
+  background: var(--panel); color: var(--ink); box-shadow: -8px 0 32px rgba(0,0,0,.12); }
+dialog::backdrop { background: rgba(0,0,0,.35); }
+.dhead { position: sticky; top: 0; z-index: 3; background: var(--panel); display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 10px 24px; min-height: 56px; }
+.dhead .t { font-size: 15px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dbody { padding: 4px 24px 36px; }
+.d-sub { color: var(--muted); }
+.d-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin: 2px 0 0; line-height: 1.35; }
+.d-full { color: var(--ink-2); margin-top: 2px; }
+.d-big { margin-top: 14px; display: flex; align-items: baseline; gap: 8px; }
+.d-big .v { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+.d-big .l { color: var(--muted); }
+.d-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+.dbody h4 { font-size: 15px; font-weight: 700; margin: 28px 0 8px; }
+.desc p { margin: 0 0 8px; font-size: 14px; line-height: 1.7; color: var(--ink-2); }
+.desc b { display: block; font-size: 12px; color: var(--muted); font-weight: 600; }
+.rows { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; margin: 0; }
+.rows div { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.rows dt { color: var(--muted); } .rows dd { margin: 0; font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--ink-2); font-size: 12px; margin-bottom: 6px; }
+.legend i { display: inline-block; width: 16px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 5px; }
+.u-legend { display: none; }
+.years svg { width: 100%; height: auto; display: block; }
+.htab { width: 100%; border-collapse: collapse; }
+.htab th { font-size: 12px; font-weight: 500; color: var(--muted); text-align: left; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.htab td { padding: 9px 0; border-bottom: 1px solid var(--line); text-align: left; }
+.htab th:last-child, .htab td:last-child { text-align: right; }
+.kv { display: grid; grid-template-columns: 96px 1fr; gap: 8px 14px; margin: 0; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; color: var(--ink-2); }
+.small { color: var(--muted); font-size: 12px; line-height: 1.7; margin: 8px 0 0; }
+
+@media (max-width: 1024px) { .panel { grid-template-columns: 170px minmax(0, 1fr); } .asof { display: none; } }
+@media (max-width: 768px) {
+  .topbar .in { padding: 0 16px; gap: 16px; }
+  .brand { font-size: 16px; }
+  .nav { gap: 16px; } .nav button { font-size: 14px; }
+  .shell { margin: 0; padding: 0; }
+  .panel { display: block; border-radius: 0; min-height: 0; }
+  .side { border-right: 0; padding: 8px 16px 4px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .side::-webkit-scrollbar { display: none; }
+  .side h2, .side .grp { display: none; }
+  .side button { width: auto; flex: none; background: var(--fill); padding: 7px 12px; border-radius: 999px; gap: 4px; }
+  .side button[aria-current="true"] { background: var(--ink); color: var(--panel); }
+  .side button[aria-current="true"] .n { color: inherit; opacity: .7; }
+  .main { padding: 14px 16px 16px; }
+  .main h1 { font-size: 18px; }
+  #tbl thead { display: none; }
+  #tbl, #tbl tbody { display: block; }
+  #tbl tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "nm main" "nm sub"; column-gap: 12px; padding: 12px 2px; border-bottom: 1px solid var(--line); }
+  #tbl tbody tr.bench { background: var(--hover); padding-left: 10px; padding-right: 10px; border-radius: 10px; border-bottom: 0; margin-bottom: 4px; }
+  #tbl tbody td { display: none; border: 0; padding: 0; background: transparent !important; }
+  #tbl td.nm { display: block; grid-area: nm; font-size: 15px; align-self: center; }
+  #tbl td.nm .id { display: block; margin: 1px 0 0; font-size: 12px; }
+  #tbl td.nm .tag { margin: 0 0 0 4px; }
+  #tbl td.c-main { display: block; grid-area: main; font-size: 15px; font-weight: 700; }
+  #tbl td.c-sub { display: block; grid-area: sub; font-size: 12px; color: var(--muted); }
+  #tbl td.c-sub::before { content: attr(data-l) " "; }
+  dialog { width: 100%; box-shadow: none; }
+  .dhead { padding-left: 16px; } .dbody { padding: 4px 16px 32px; }
+  .rows { grid-template-columns: 1fr; }
+  details.cols { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="in">
+    <div class="brand">전략 검증 보드</div>
+    <nav class="nav" role="tablist" aria-label="보기">
+      <button role="tab" id="tab-list" aria-controls="view" aria-selected="true">전략 목록</button>
+      <button role="tab" id="tab-period" aria-controls="view" aria-selected="false">기간 성과</button>
+    </nav>
+    <div class="asof">데이터 기준 <span id="asof"></span></div>
+    <button class="iconbtn" id="theme" aria-label="밝은·어두운 화면 바꾸기">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="shell">
+  <div class="panel">
+    <aside class="side" id="side" aria-label="전략 묶음"></aside>
+    <main class="main" id="view">
+      <h1 id="title"></h1>
+      <p class="lead" id="lead"></p>
+      <div class="filters" id="filters"></div>
+      <p class="note" id="note" hidden></p>
+      <table id="tbl"></table>
+      <div class="legalbar">
+        전략 164개를 매매비용·세금(해외 ETF 15.4%)·다중검정까지 반영해 백테스트한 개인 기록입니다. 투자 권유가 아니며 과거 성과가 미래를 보장하지 않습니다.
+        샤프는 단기채 대비 초과수익 기준, 판정 구간은 2011~2024이며 2025~26 급등장은 따로 표시했습니다. 생성 <span id="gen"></span> · <span id="selfcheck-note"></span>
+      </div>
+    </main>
+  </div>
+</div>
+
+<dialog id="detail" aria-labelledby="d-title"></dialog>
+
+<script>
+const D = /*__DATA__*/null;
+const TIER_ORDER = ["벤치마크", "1 검증 통과", "2 경계", "3 코스피200보다 나음", "4 수익 플러스·지수 이하", "주의(숨김)"];
+const TIER_LABEL = {"1 검증 통과": "검증 통과", "2 경계": "경계", "3 코스피200보다 나음": "지수보다 나음", "4 수익 플러스·지수 이하": "지수 이하", "주의(숨김)": "주의"};
+const $ = s => document.querySelector(s);
+const dates = D.dates, N = dates.length;
+const ids = Object.keys(D.series);
+const isBench = id => D.bench.includes(id);
+const shortName = id => isBench(id) ? D.meta[id].name.split(" (")[0] : (D.meta[id].short || D.meta[id].name);
+const subName = id => isBench(id) ? (D.meta[id].name.match(/\((.*)\)/) || [, ""])[1] : id;
+
+/* ─── 지표: engine.metrics 와 같은 정의 ─── */
+function idx(dt) { let lo = 0, hi = N; while (lo < hi) { const m = (lo + hi) >> 1; if (dates[m] < dt) lo = m + 1; else hi = m; } return lo; }
+function range(from, to) { return [idx(from), idx(to + "~") - 1]; }   // "~" 는 같은 날짜 포함
+function metrics(id, from, to) {
+  const s = D.series[id], rf = D.rf; const [a, b] = range(from || dates[0], to || dates[N - 1]);
+  let n = 0, prod = 1, se = 0, dn2 = 0, peak = -Infinity, eq = 1, mdd = 0, first = null, last = null;
+  const ex = [];
+  for (let i = a; i <= b; i++) {
+    const r = s[i]; if (r === null || r === undefined) continue;
+    n++; prod *= 1 + r; eq = prod; if (eq > peak) peak = eq; const dd = eq / peak - 1; if (dd < mdd) mdd = dd;
+    const e = r - rf[i]; ex.push(e); se += e; dn2 += e < 0 ? e * e : 0;
+    if (first === null) first = dates[i]; last = dates[i];
+  }
+  if (n < 60) return { n, first, last, short: true };
+  const mean = se / n; let v = 0; for (const e of ex) v += (e - mean) ** 2; const sd = Math.sqrt(v / (n - 1));
+  const cagr = Math.pow(prod, 252 / n) - 1, dn = Math.sqrt(dn2 / n);
+  return { n, first, last, CAGR: cagr, Sharpe: sd > 0 ? mean / sd * Math.sqrt(252) : null, Sortino: dn > 0 ? mean / dn * Math.sqrt(252) : null,
+    MDD: mdd, Calmar: mdd < 0 ? cagr / Math.abs(mdd) : null };
+}
+const M = {};
+for (const id of ids) M[id] = { p24: metrics(id, "2011-01-01", "2024-12-31"), p2526: metrics(id, "2025-01-01", null), all: metrics(id) };
+
+/* ─── 자체 점검: 파이썬(engine.metrics) 기대값과 대조 ─── */
+function selfcheck() {
+  const rows = [], P = { "2011-2024": ["2011-01-01", "2024-12-31"], "2020-2026": ["2020-01-01", null] };
+  let bad = 0;
+  for (const [id, per] of Object.entries(D.expected)) for (const [p, e] of Object.entries(per)) {
+    if (!e) continue; const m = metrics(id, ...P[p]);
+    for (const k of ["CAGR", "Sharpe", "MDD"]) { const d = Math.abs((m[k] ?? NaN) - e[k]); if (!(d < 1e-3)) { bad++; rows.push({ id, p, k, js: m[k], py: e[k], d }); } }
+  }
+  document.body.dataset.selfcheck = bad ? "fail" : "ok";
+  console.log(`selfcheck: ${bad ? "FAIL " + bad : "ok"}`); if (rows.length) console.table(rows);
+  $("#selfcheck-note").textContent = bad ? `자체 점검 실패 ${bad}건` : "자체 점검 통과(브라우저 계산 = 파이썬 계산)";
+}
+
+/* ─── 형식 ─── */
+const pct = (x, d = 1) => x == null || isNaN(x) ? "—" : (x * 100).toFixed(d) + "%";
+const sgn = x => x == null || isNaN(x) ? "" : x > 0 ? "up" : x < 0 ? "down" : "";
+const num = (x, d = 2) => x == null || isNaN(x) ? "—" : x.toFixed(d);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ─── 묶음(왼쪽 목록) ─── */
+const GROUPS = [
+  { k: "all", l: "전체", lead: "코스피200보다 낫거나 수익이 난 전략. 공통 조건: 2011~24·2011~19 수익 플러스, 매매비용을 2배로 올려도 샤프 플러스." },
+  { k: "1 검증 통과", l: "검증 통과", lead: "2011~24 초과 샤프 0.5 이상, 코스피200 대비 알파 t > 2. 다만 164개를 시험한 우연 보정(DSR) 95%를 넘는 전략은 없습니다." },
+  { k: "2 경계", l: "경계", lead: "초과 샤프 0.5 이상이지만 코스피200 대비 알파가 통계적으로 확실하지 않은 전략." },
+  { k: "3 코스피200보다 나음", l: "지수보다 나음", lead: "2011~24 연수익률이나 샤프가 코스피200보다 높은 전략." },
+  { k: "4 수익 플러스·지수 이하", l: "지수 이하", lead: "수익은 났지만 코스피200에 못 미친 전략. 낙폭이 작아 안정성 참고용." },
+  { k: "주의(숨김)", l: "주의", lead: "성과는 좋아 보이지만 퀀트 판정에서 문제(사후 선택·재현성 등)가 나온 전략. 이유를 함께 표시합니다.", sep: true },
+];
+const inGroup = (id, g) => g === "all" ? D.meta[id].tier !== "주의(숨김)" : D.meta[id].tier === g;
+const members = g => ids.filter(id => !isBench(id) && inGroup(id, g));
+
+/* ─── 열 정의 (c-main / c-sub = 모바일에 남는 두 숫자) ─── */
+const COLS = [
+  { k: "r24", l: "11~24 연", v: id => M[id].p24.CAGR, f: x => pct(x), c: sgn, on: 1, cls: "c-main" },
+  { k: "s24", l: "초과 샤프", v: id => M[id].p24.Sharpe, f: num, on: 1, cls: "c-sub", ml: "샤프" },
+  { k: "at", l: "알파 t", v: id => D.meta[id].fixed.alpha_t, f: x => num(x, 1), on: 1 },
+  { k: "mdd", l: "최대 낙폭", v: id => M[id].all.MDD, f: x => pct(x), on: 1 },
+  { k: "r2526", l: "25~26 연", v: id => M[id].p2526.CAGR, f: x => pct(x), c: sgn, on: 1 },
+  { k: "calmar", l: "칼마", v: id => M[id].all.Calmar, f: num, on: 1 },
+  { k: "win", l: "월 승률", v: id => D.meta[id].fixed.win, f: x => pct(x, 0) },
+  { k: "turn", l: "연 회전율", v: id => D.meta[id].fixed.turnover, f: x => num(x, 1) },
+  { k: "rall", l: "전체 연", v: id => M[id].all.CAGR, f: x => pct(x), c: sgn },
+  { k: "sort", l: "소르티노", v: id => M[id].all.Sortino, f: num },
+  { k: "payoff", l: "손익비", v: id => D.meta[id].fixed.payoff, f: num },
+  { k: "pf", l: "PF", v: id => D.meta[id].fixed.pf, f: num },
+  { k: "beta", l: "베타", v: id => D.meta[id].fixed.beta, f: num },
+  { k: "dsr", l: "DSR", v: id => D.meta[id].fixed.dsr, f: x => pct(x, 0) },
+  { k: "c2", l: "비용2배 샤프", v: id => D.meta[id].fixed.cost2x, f: num },
+];
+const state = { view: "list", group: "all", sort: null, dir: -1, cols: new Set(COLS.filter(c => c.on).map(c => c.k)), pfrom: null, pto: null, preset: "1124", psort: "s", pdir: -1 };
+
+function tierTag(id) {
+  const t = D.meta[id].tier;
+  return t === "1 검증 통과" ? '<span class="tag blue">검증 통과</span>' : t === "2 경계" ? '<span class="tag">경계</span>' : "";
+}
+function nameTd(id) {
+  const m = D.meta[id];
+  const why = m.tier === "주의(숨김)" ? `<span class="why">${esc(m.review.why)}</span>` : "";
+  const tag = state.group === "all" && !isBench(id) ? tierTag(id) : "";
+  return `<td class="l nm">${esc(shortName(id))}${tag}<span class="id">${esc(subName(id))}</span>${why}</td>`;
+}
+const catTd = id => `<td class="l cat"><span class="tag">${isBench(id) ? "지수" : esc(D.meta[id].cat)}</span></td>`;
+const rowOpen = (id, cls) => `<tr class="${cls}" data-id="${id}" tabindex="0" aria-label="${esc(shortName(id))} 상세 보기">`;
+const th = (k, l, cur, dir, attr) => `<th scope="col" ${cur === k ? `aria-sort="${dir > 0 ? "ascending" : "descending"}"` : ""}><button ${attr}="${k}">${l}</button></th>`;
+
+/* ─── 왼쪽 목록 ─── */
+function renderSide() {
+  const btn = g => `<button data-g="${esc(g.k)}" aria-current="${state.group === g.k}"><span>${g.l}${g.k === "1 검증 통과" ? "" : ""}</span><span class="n">${members(g.k).length}</span></button>`;
+  $("#side").innerHTML = `<h2>전략 목록</h2>` + GROUPS.filter(g => !g.sep).map(btn).join("") +
+    `<div class="grp">참고</div>` + GROUPS.filter(g => g.sep).map(btn).join("");
+}
+
+/* ─── 상단(제목·필터) ─── */
+function renderHead() {
+  const g = GROUPS.find(x => x.k === state.group);
+  $("#title").textContent = g.k === "all" ? "전체 전략" : g.l;
+  $("#lead").textContent = g.lead;
+  const note = $("#note");
+  if (state.view === "list") {
+    $("#filters").innerHTML = `<details class="cols" id="colsbox"><summary class="chipbtn">표시할 지표 <span aria-hidden="true">▾</span></summary><div class="pop" id="colpop">` +
+      COLS.map(c => `<label><input type="checkbox" data-c="${c.k}" ${state.cols.has(c.k) ? "checked" : ""}> ${c.l}</label>`).join("") + `</div></details>`;
+    note.hidden = true;
+  } else {
+    const P = [["1y", "1년"], ["3y", "3년"], ["5y", "5년"], ["1124", "2011~2024"], ["all", "전체"]];
+    $("#filters").innerHTML = P.map(([k, l]) => `<button class="chipbtn" data-p="${k}" aria-pressed="${state.preset === k}">${l}</button>`).join("") +
+      `<label class="sr" for="pfrom">시작일</label><input class="date" id="pfrom" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" autocomplete="off" value="${state.pfrom}"><span class="to">~</span><label class="sr" for="pto">종료일</label><input class="date" id="pto" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" autocomplete="off" value="${state.pto}">`;
+    note.hidden = false;
+    note.textContent = "과거 성과 참고용입니다. 최근 성과로 전략을 고르는 방식은 검증에서 전체 기간 방식보다 나빴습니다. 해외 ETF 세금은 연말에 한 번에 빠져 12월을 낀 짧은 기간은 수익률이 튈 수 있습니다.";
+  }
+}
+
+/* ─── 목록 표 ─── */
+function renderList() {
+  const cols = COLS.filter(c => state.cols.has(c.k));
+  let list = members(state.group);
+  if (state.sort) { const c = COLS.find(x => x.k === state.sort); list.sort((a, b) => ((c.v(a) ?? -1e9) - (c.v(b) ?? -1e9)) * state.dir); }
+  else { const rank = id => TIER_ORDER.indexOf(D.meta[id].tier); list.sort((a, b) => rank(a) - rank(b) || (M[b].p24.Sharpe ?? -9) - (M[a].p24.Sharpe ?? -9)); }
+  const head = `<thead><tr><th scope="col" class="rk"><span class="sr">순위</span></th><th scope="col" class="l">전략</th><th scope="col" class="l">분류</th>` +
+    cols.map(c => th(c.k, c.l, state.sort, state.dir, "data-k")).join("") + `</tr></thead>`;
+  const row = (id, i) => rowOpen(id, isBench(id) ? "bench" : "") + `<td class="rk">${isBench(id) ? "" : i + 1}</td>${nameTd(id)}${catTd(id)}` +
+    cols.map(c => { const v = c.v(id); return `<td class="num ${c.c ? c.c(v) : ""} ${c.cls || ""}" data-l="${c.ml || c.l}">${c.f(v)}</td>`; }).join("") + "</tr>";
+  $("#tbl").innerHTML = head + `<tbody>${D.bench.map(row).join("")}${list.map(row).join("")}</tbody>`;
+}
+
+/* ─── 기간 성과 표 ─── */
+function renderPeriod() {
+  const f = state.pfrom, t = state.pto;
+  const key = { c: "CAGR", s: "Sharpe", d: "MDD", k: "Calmar" }[state.psort];
+  const res = members(state.group).map(id => ({ id, m: metrics(id, f, t) }));
+  res.sort((a, b) => ((a.m[key] ?? -1e9) - (b.m[key] ?? -1e9)) * state.pdir);
+  const head = `<thead><tr><th scope="col" class="rk"><span class="sr">순위</span></th><th scope="col" class="l">전략</th><th scope="col" class="l">계산 기간</th>` +
+    th("c", "연수익률", state.psort, state.pdir, "data-pk") + th("s", "초과 샤프", state.psort, state.pdir, "data-pk") +
+    th("d", "최대 낙폭", state.psort, state.pdir, "data-pk") + th("k", "칼마", state.psort, state.pdir, "data-pk") + `</tr></thead>`;
+  const row = ({ id, m }, i) => {
+    const per = m.first ? `${m.first} ~ ${m.last}` : "—", rk = isBench(id) ? "" : i + 1;
+    if (m.short) return rowOpen(id, isBench(id) ? "bench" : "") + `<td class="rk">${rk}</td>${nameTd(id)}<td class="l dim num">${per}</td><td class="dim c-main" colspan="4">데이터 부족</td></tr>`;
+    return rowOpen(id, isBench(id) ? "bench" : "") + `<td class="rk">${rk}</td>${nameTd(id)}<td class="l dim num">${per}</td>` +
+      `<td class="num ${sgn(m.CAGR)} c-main">${pct(m.CAGR)}</td><td class="num c-sub" data-l="샤프">${num(m.Sharpe)}</td><td class="num">${pct(m.MDD)}</td><td class="num">${num(m.Calmar)}</td></tr>`;
+  };
+  const bench = D.bench.map(id => ({ id, m: metrics(id, f, t) }));
+  $("#tbl").innerHTML = head + `<tbody>${bench.map(row).join("")}${res.map(row).join("")}</tbody>`;
+}
+function setPreset(p) {
+  const last = dates[N - 1], ld = new Date(last);
+  const back = y => { const d = new Date(ld); d.setFullYear(d.getFullYear() - y); return d.toISOString().slice(0, 10); };
+  const map = { "1y": [back(1), last], "3y": [back(3), last], "5y": [back(5), last], "1124": ["2011-01-01", "2024-12-31"], "all": [dates[0], last] };
+  state.preset = p; [state.pfrom, state.pto] = map[p];
+}
+function render() {
+  renderSide(); renderHead();
+  state.view === "list" ? renderList() : renderPeriod();
+}
+
+/* ─── 상세 ─── */
+const GRADE = { A: "원문 확인·규칙 일치", B: "2차 자료로만 확인", C: "원문과 다르게 구현", D: "원문 확인 불가" };
+let chart = null;
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function badgeTags(id) {
+  const b = D.meta[id].badges || {}, c = [tierTag(id)];
+  if (D.meta[id].tier === "3 코스피200보다 나음") c.push('<span class="tag">지수보다 나음</span>');
+  if (D.meta[id].tier === "4 수익 플러스·지수 이하") c.push('<span class="tag">지수 이하</span>');
+  if (D.meta[id].tier === "주의(숨김)") c.push('<span class="tag red">주의</span>');
+  if (b.cagr) c.push('<span class="tag">수익률 &gt; 코스피200</span>');
+  if (b.sharpe) c.push('<span class="tag">샤프 &gt; 코스피200</span>');
+  if (b.mdd) c.push('<span class="tag red">낙폭 코스피200보다 깊음</span>');
+  return c.join("");
+}
+function openDetail(id) {
+  const m = D.meta[id], dlg = $("#detail"), bench = isBench(id);
+  const a = M[id].p24, b = M[id].p2526, all = M[id].all, f = m.fixed || {};
+  const r = (l, v) => `<div><dt>${l}</dt><dd class="num">${v}</dd></div>`;
+  const rows = `<dl class="rows">${r("2011~24 연수익률", `<span class="${sgn(a.CAGR)}">${pct(a.CAGR)}</span>`)}${r("2011~24 초과 샤프", num(a.Sharpe))}
+    ${r("2025~26 연수익률", `<span class="${sgn(b.CAGR)}">${pct(b.CAGR)}</span>`)}${r("전체 연수익률", `<span class="${sgn(all.CAGR)}">${pct(all.CAGR)}</span>`)}
+    ${r("최대 낙폭(전체)", pct(all.MDD))}${r("칼마", num(all.Calmar))}${bench ? "" : r("알파 t (11~24)", num(f.alpha_t, 1)) + r("베타", num(f.beta))}</dl>`;
+  const desc = m.desc ? `<h4>어떤 전략인가요</h4><div class="desc"><p><b>어떻게</b>${esc(m.desc[0])}</p><p><b>왜</b>${esc(m.desc[1])}</p></div>` : "";
+  const hold = (m.holdings || []).length ? `<h4>지금 담고 있는 종목</h4>
+      <table class="htab"><thead><tr><th>종목·ETF</th><th>비중</th></tr></thead><tbody>${m.holdings.map(h =>
+      `<tr><td>${esc(h.name)} <span class="dim">${esc(h.code)}</span>${h.warn ? ` <span class="tag red">부실 전조: ${esc(h.warn)}</span>` : ""}</td><td class="num">${pct(h.w, 1)}</td></tr>`).join("")}</tbody></table>
+      <p class="small">${esc(m.last_rebal)} 리밸런싱 기준 목표 비중(${esc(m.cycle)}). 부실 전조 = 최근 1년 관리종목·불성실공시·감사의견 공시, 또는 적자이면서 CB·BW·유상증자.</p>`
+      : bench ? "" : `<h4>지금 담고 있는 종목</h4><p class="small" style="margin:0">${esc(m.last_rebal)} 리밸런싱 기준 보유 없음(현금·단기채). 리밸런싱 주기: ${esc(m.cycle)}.</p>`;
+  const rv = m.review ? `<h4>검증 근거</h4><dl class="kv"><dt>출처</dt><dd>${esc(m.src)}</dd><dt>구현 가정</dt><dd>${esc(m.assume || "—")}</dd>
+      <dt>출처 등급</dt><dd>${esc(m.review.grade)}${GRADE[m.review.grade] ? ` <span class="dim">— ${GRADE[m.review.grade]}</span>` : ""}</dd><dt>퀀트 판정</dt><dd>${esc(m.review.verdict)} — ${esc(m.review.why)}</dd>
+      <dt>우연 보정</dt><dd>DSR ${pct(f.dsr, 0)} <span class="dim">— 164개를 시험한 것을 감안해 '진짜 초과 샤프 &gt; 0'일 확률. 95% 미만이면 우연을 배제할 수 없음</span></dd></dl>` : "";
+  dlg.innerHTML = `<div class="dhead"><span class="t"></span><button class="iconbtn close" aria-label="닫기">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="dbody">
+      <div class="d-sub">${bench ? "벤치마크" : `${id} · ${esc(m.cat)} · ${esc(m.cycle)} 리밸런싱`}</div>
+      <h3 class="d-title" id="d-title">${esc(shortName(id))}</h3>
+      <div class="d-full">${esc(bench ? subName(id) : m.name)}</div>
+      <div class="d-big"><span class="v num ${sgn(a.CAGR)}">${pct(a.CAGR)}</span><span class="l">2011~24 연수익률</span></div>
+      ${bench ? "" : `<div class="d-tags">${badgeTags(id)}</div>`}
+      ${desc}
+      <h4>성과</h4>${rows}
+      <h4>누적 수익 <span class="dim" style="font-weight:500;font-size:12px">로그 눈금, 시작 = 1</span></h4><div class="legend" id="lg"></div><div id="chart"></div>
+      <h4>연도별 수익률</h4><div class="years" id="years"></div>
+      ${hold}${rv}
+      <p class="small">해외·채권·금·달러 ETF 매매차익 세금(15.4%)은 매년 말 한 번에 반영했습니다.</p>
+    </div>`;
+  dlg.querySelector(".close").onclick = () => dlg.close();
+  dlg.showModal();
+  drawChart(id); drawYears(id);
+}
+function drawChart(id) {
+  const box = $("#chart"); if (chart) { chart.destroy(); chart = null; }
+  const list = isBench(id) ? D.bench : [id, ...D.bench];
+  const s0 = D.series[id]; let start = s0.findIndex(v => v != null); start = Math.max(start, idx("2011-01-01"));
+  const xs = [], cols = list.map(() => []), eq = list.map(() => 1);
+  for (let i = start; i < N; i++) {
+    xs.push(Date.parse(dates[i]) / 1000);
+    list.forEach((k, j) => { const r = D.series[k][i]; if (r != null) eq[j] *= 1 + r; cols[j].push(eq[j]); });
+  }
+  const colors = ["--s1", "--s2", "--s3", "--s4"].map(css), dashes = [[], [6, 4], [2, 3], [10, 3, 2, 3]];
+  const labels = list.map(k => isBench(k) ? shortName(k) : k);
+  const font = '11px "Pretendard Variable", sans-serif';
+  $("#lg").innerHTML = list.map((k, j) => `<span><i style="border-color:${colors[j]};border-top-style:${j ? "dashed" : "solid"}"></i>${esc(labels[j])} <b class="num" id="lv${j}"></b></span>`).join("");
+  const w = box.clientWidth || 600;
+  chart = new uPlot({
+    width: w, height: 260, legend: { show: false }, padding: [10, 86, 0, 0],
+    scales: { y: { distr: 3, range: (u, mn, mx) => [mn * 0.97, mx * 1.03] } },
+    cursor: { drag: { x: false, y: false } },
+    axes: [{ stroke: css("--muted"), grid: { stroke: css("--line"), width: 1 }, ticks: { show: false }, font },
+           { stroke: css("--muted"), grid: { stroke: css("--line"), width: 1 }, ticks: { show: false }, size: 40, font,
+             values: (u, v) => v.map(x => x == null ? "" : x >= 10 ? x.toFixed(0) : String(+x.toFixed(2))) }],   // 로그축 눈금엔 null 이 섞임
+    series: [{}, ...list.map((k, j) => ({ label: labels[j], stroke: colors[j], width: j ? 1.3 : 2.2, dash: dashes[j], alpha: j ? .85 : 1, spanGaps: true }))],
+    hooks: {
+      draw: [u => {   // 선 끝 점 + 오른쪽 여백 이름표(겹치면 위아래로 벌리고 가는 선으로 연결)
+        const ctx = u.ctx, n = u.data[0].length - 1, dpr = devicePixelRatio, gap = 15 * dpr;
+        const ex = u.valToPos(u.data[0][n], "x", true), lx = ex + 16 * dpr;
+        const top = u.bbox.top + 6 * dpr, bot = u.bbox.top + u.bbox.height - 6 * dpr;
+        const L = list.map((k, j) => { const y0 = u.valToPos(cols[j][n], "y", true); return { j, y0, y: y0 }; }).sort((a, b) => a.y0 - b.y0);
+        for (let i = 0; i < L.length; i++) L[i].y = Math.max(L[i].y, i ? L[i - 1].y + gap : top);   // 아래로 밀기
+        if (L.length && L[L.length - 1].y > bot) {                                                   // 넘치면 위로 되밀기
+          L[L.length - 1].y = bot; for (let i = L.length - 2; i >= 0; i--) L[i].y = Math.min(L[i].y, L[i + 1].y - gap);
+        }
+        ctx.save(); ctx.font = `600 ${Math.round(11 * dpr)}px "Pretendard Variable", sans-serif`; ctx.textBaseline = "middle"; ctx.textAlign = "left";   // uPlot 축 그리기가 남긴 정렬값 초기화
+        for (const { j, y0, y } of L) {
+          ctx.strokeStyle = css("--line-2"); ctx.lineWidth = dpr; ctx.beginPath(); ctx.moveTo(ex + 4 * dpr, y0); ctx.lineTo(lx - 3 * dpr, y); ctx.stroke();
+          ctx.fillStyle = colors[j]; ctx.beginPath(); ctx.arc(ex, y0, 3 * dpr, 0, 2 * Math.PI); ctx.fill();
+          ctx.strokeStyle = css("--panel"); ctx.lineWidth = 1.5 * dpr; ctx.stroke();
+          ctx.strokeStyle = css("--panel"); ctx.lineWidth = 4 * dpr; ctx.lineJoin = "round"; ctx.strokeText(labels[j], lx, y);
+          ctx.fillStyle = css("--ink-2"); ctx.fillText(labels[j], lx, y);
+        }
+        ctx.restore();
+      }],
+      setCursor: [u => { const i = u.cursor.idx; list.forEach((k, j) => { const el = $("#lv" + j); if (el) el.textContent = i == null ? "" : "× " + cols[j][i].toFixed(2); }); }] },
+  }, [xs, ...cols], box);
+}
+function drawYears(id) {
+  const s = D.series[id], by = {};
+  for (let i = 0; i < N; i++) { const r = s[i]; if (r == null) continue; const y = dates[i].slice(0, 4); by[y] = (by[y] ?? 1) * (1 + r); }
+  const ys = Object.keys(by).filter(y => y >= "2011"), vals = ys.map(y => by[y] - 1);
+  if (!ys.length) { $("#years").innerHTML = ""; return; }
+  const hi = Math.max(0.02, ...vals), lo = Math.min(0, ...vals), W = 600, top = 18, plot = 110, pad = 8;
+  const H = top + plot + 36, sc = plot / (hi - lo), z = top + hi * sc, bw = (W - pad * 2) / ys.length;
+  const bars = ys.map((y, i) => {
+    const v = vals[i], h = Math.abs(v) * sc, x = pad + i * bw + bw * .2, yy = v >= 0 ? z - h : z, cx = (x + bw * .3).toFixed(1);
+    return `<g><rect x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${(bw * .6).toFixed(1)}" height="${Math.max(h, 1).toFixed(1)}" rx="2" fill="${v >= 0 ? "var(--up)" : "var(--down)"}"><title>${y}: ${pct(v)}</title></rect>
+      <text x="${cx}" y="${(v >= 0 ? yy - 4 : yy + h + 12).toFixed(1)}" text-anchor="middle" font-size="11" fill="var(--ink-2)">${(v * 100).toFixed(0)}</text>
+      <text x="${cx}" y="${H - 4}" text-anchor="middle" font-size="11" fill="var(--muted)">${y.slice(2)}</text></g>`;
+  }).join("");
+  const label = "연도별 수익률: " + ys.map((y, i) => `${y}년 ${pct(vals[i], 0)}`).join(", ");
+  $("#years").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${label}"><line x1="${pad}" x2="${W - pad}" y1="${z.toFixed(1)}" y2="${z.toFixed(1)}" stroke="var(--line-2)"/>${bars}</svg>
+    <p class="small">막대 위 숫자는 %, 아래는 연도(20xx)입니다.</p>`;
+}
+
+/* ─── 이벤트 ─── */
+document.addEventListener("click", e => {
+  const g = e.target.closest("[data-g]"); if (g) { state.group = g.dataset.g; state.sort = null; render(); return; }
+  const k = e.target.closest("[data-k]"); if (k) { state.dir = state.sort === k.dataset.k ? -state.dir : -1; state.sort = k.dataset.k; renderList(); return; }
+  const pk = e.target.closest("[data-pk]"); if (pk) { state.pdir = state.psort === pk.dataset.pk ? -state.pdir : -1; state.psort = pk.dataset.pk; renderPeriod(); return; }
+  const p = e.target.closest("[data-p]"); if (p) { setPreset(p.dataset.p); render(); return; }
+  const row = e.target.closest("tr[data-id]"); if (row && !e.target.closest("dialog")) openDetail(row.dataset.id);
+});
+document.addEventListener("change", e => {
+  if (e.target.matches("[data-c]")) { const k = e.target.dataset.c; e.target.checked ? state.cols.add(k) : state.cols.delete(k); renderList(); }
+  if (e.target.id === "pfrom" || e.target.id === "pto") {
+    const v = e.target.value.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v) && !isNaN(Date.parse(v))) { state[e.target.id] = v; state.preset = null; }
+    render();   // 형식이 틀리면 이전 값으로 되돌림
+  }
+});
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches("tr[data-id]")) openDetail(e.target.dataset.id); });
+$("#detail").addEventListener("click", e => { if (e.target === $("#detail")) $("#detail").close(); });
+function tab(which) {
+  state.view = which;
+  $("#tab-list").setAttribute("aria-selected", String(which === "list")); $("#tab-period").setAttribute("aria-selected", String(which === "period"));
+  render();
+}
+$("#tab-list").onclick = () => tab("list"); $("#tab-period").onclick = () => tab("period");
+$("#theme").onclick = () => {
+  const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme = dark ? "light" : "dark"; try { localStorage.setItem("theme", r.dataset.theme); } catch (_) {}
+};
+try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (_) {}
+
+$("#asof").textContent = D.asof; $("#gen").textContent = D.generated;
+setPreset("1124"); render(); selfcheck();
+</script>
+</body>
+</html>
