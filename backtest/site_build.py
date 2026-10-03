@@ -134,7 +134,7 @@ def benchmarks(daily: pd.DataFrame) -> pd.DataFrame:
 
 
 def _px_of(res):
-    if res.get("px") is not None:
+    if isinstance(res, dict) and res.get("px") is not None:
         return {k.lower(): v for k, v in res["px"].items()}
     return {k: K.load(f"adj_{k}") for k in ("open", "high", "low", "close")}
 
@@ -142,6 +142,9 @@ def _px_of(res):
 def holdings(sid):
     """체결까지 끝난 마지막 리밸런싱의 목표 비중(>0). 데이터 마지막 날에 찍힌 신호는 아직 체결 전이라 제외."""
     res = S.REG[sid]["fn"]()
+    if not isinstance(res, dict):          # 슬롯형(engine.Spec) — 목표 비중이 없다(보유는 슬롯 경쟁 결과)
+        close = _px_of(res)["close"]
+        return pd.DataFrame(columns=["code", "name", "weight"]), pd.Timestamp(close.index[-1])
     w = res["weights"]
     last_day = _px_of(res)["close"].index[-1]
     w = w[w.index < last_day].dropna(how="all")
