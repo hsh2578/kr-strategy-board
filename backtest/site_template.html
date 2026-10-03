@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#17171c" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:,">
 <title>전략 검증 보드</title>
-<meta name="description" content="한국 시장 전략 164개를 비용·세금·다중검정까지 반영해 검증한 결과(개인 기록용, 투자 권유 아님)">
+<meta name="description" content="한국 시장 전략 301개를 비용·세금·다중검정까지 반영해 검증한 결과(개인 기록용, 투자 권유 아님)">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uplot@1.6.32/dist/uPlot.min.css" integrity="sha384-IfV0B7MIOYuO95kO9G5ySKPz/85zqFNOAs8iy4tkK5zd9izhJAB8b7lHrwYqqmYE" crossorigin="anonymous">
@@ -203,7 +203,7 @@ dialog::backdrop { background: rgba(0,0,0,.35); }
       <p class="note" id="note" hidden></p>
       <table id="tbl"></table>
       <div class="legalbar">
-        전략 164개를 매매비용·세금(해외 ETF 15.4%)·다중검정까지 반영해 백테스트한 개인 기록입니다. 투자 권유가 아니며 과거 성과가 미래를 보장하지 않습니다.
+        전략 301개를 매매비용·세금(해외 ETF 15.4%)·다중검정까지 반영해 백테스트한 개인 기록입니다. 투자 권유가 아니며 과거 성과가 미래를 보장하지 않습니다.
         샤프는 단기채 대비 초과수익 기준, 판정 구간은 2011~2024이며 2025~26 급등장은 따로 표시했습니다. 생성 <span id="gen"></span> · <span id="selfcheck-note"></span>
       </div>
     </main>
@@ -267,7 +267,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "
 /* ─── 묶음(왼쪽 목록) ─── */
 const GROUPS = [
   { k: "all", l: "전체", lead: "코스피200보다 낫거나 수익이 난 전략. 공통 조건: 2011~24·2011~19 수익 플러스, 매매비용을 2배로 올려도 샤프 플러스." },
-  { k: "1 검증 통과", l: "검증 통과", lead: "2011~24 초과 샤프 0.5 이상, 코스피200 대비 알파 t > 2. 다만 164개를 시험한 우연 보정(DSR) 95%를 넘는 전략은 없습니다." },
+  { k: "1 검증 통과", l: "검증 통과", lead: "2011~24 초과 샤프 0.5 이상, 코스피200 대비 알파 t > 2. 다만 301개를 시험한 우연 보정(DSR) 95%를 넘는 전략은 없고, 알파 t > 3을 넘는 전략도 없습니다." },
   { k: "2 경계", l: "경계", lead: "초과 샤프 0.5 이상이지만 코스피200 대비 알파가 통계적으로 확실하지 않은 전략." },
   { k: "3 코스피200보다 나음", l: "지수보다 나음", lead: "2011~24 연수익률이나 샤프가 코스피200보다 높은 전략." },
   { k: "4 수익 플러스·지수 이하", l: "지수 이하", lead: "수익은 났지만 코스피200에 못 미친 전략. 낙폭이 작아 안정성 참고용." },
@@ -407,7 +407,7 @@ function openDetail(id) {
       : bench ? "" : `<h4>지금 담고 있는 종목</h4><p class="small" style="margin:0">${esc(m.last_rebal)} 리밸런싱 기준 보유 없음(현금·단기채). 리밸런싱 주기: ${esc(m.cycle)}.</p>`;
   const rv = m.review ? `<h4>검증 근거</h4><dl class="kv"><dt>출처</dt><dd>${esc(m.src)}</dd><dt>구현 가정</dt><dd>${esc(m.assume || "—")}</dd>
       <dt>출처 등급</dt><dd>${esc(m.review.grade)}${GRADE[m.review.grade] ? ` <span class="dim">— ${GRADE[m.review.grade]}</span>` : ""}</dd><dt>퀀트 판정</dt><dd>${esc(m.review.verdict)} — ${esc(m.review.why)}</dd>
-      <dt>우연 보정</dt><dd>DSR ${pct(f.dsr, 0)} <span class="dim">— 164개를 시험한 것을 감안해 '진짜 초과 샤프 &gt; 0'일 확률. 95% 미만이면 우연을 배제할 수 없음</span></dd></dl>` : "";
+      <dt>우연 보정</dt><dd>DSR ${pct(f.dsr, 0)} <span class="dim">— 301개를 시험한 것을 감안해 '진짜 초과 샤프 &gt; 0'일 확률. 95% 미만이면 우연을 배제할 수 없음</span></dd></dl>` : "";
   dlg.innerHTML = `<div class="dhead"><span class="t"></span><button class="iconbtn close" aria-label="닫기">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="dbody">
