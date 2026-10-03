@@ -249,7 +249,17 @@ VERDICT = {  # 최종 독립 검증(2026-09-24~25): 출처 등급 A=1차 확인�
 def final_section(doc, m):
     """최종 결론: 통과 단계, 추천 시스템 vs 비교 기준, 통과 전략."""
     import engine as E
-    doc.add_heading("최종 결론 (2026-09-25, 전수 감사·독립 검증 후)", 1)
+    from datetime import date
+    from scipy.stats import norm
+    _d = pd.read_parquet(RES / "daily.parquet")
+    _n, _T, _g = _d.shape[1], len(_d), 0.5772156649
+    _emax = (1 - _g) * norm.ppf(1 - 1 / _n) + _g * norm.ppf(1 - 1 / (_n * np.e))
+    _luck = _emax / np.sqrt(_T - 1) * np.sqrt(252)   # N개 무실력 전략에서 우연히 나오는 최대 초과샤프(연율)
+    _yrs = _T / 252
+    _xt = m.set_index("id").drop(EXCL, errors="ignore")["T24"]
+    _nt, _at = int(_xt.notna().sum()), int((_xt > 2).sum())
+    _et = _nt * (1 - norm.cdf(2))
+    doc.add_heading(f"최종 결론 ({date.today():%Y-%m-%d}, 전수 감사·독립 검증 후)", 1)
     x = m.set_index("id").drop(EXCL, errors="ignore")
     bm = pd.read_csv(RES / "metrics.csv").set_index("id").loc[["H01", "BM02"]]
     bar_all, bar24 = bm["ALL_Sharpe"].max(), bm["TO24_Sharpe"].max()
@@ -270,7 +280,9 @@ def final_section(doc, m):
     for t in ["결론: 한국 시장에서 이 데이터로 확인된 것은 '종목을 고르는 기술'이 아니라 '자산을 나눠 담아 낙폭을 줄이는 방법'이다. "
               "통과 전략 대부분이 자산배분이고 개별종목 전략은 LT32 하나다.",
               "매달 전략을 고르는 추천 규칙(A)은 KODEX200 45% + 단기채 55% 고정 조합(BM02)에 수익·샤프 모두 졌다. 선택 장치가 가치를 더하지 못했다.",
-              "164개를 시험하면 16년 동안 실력 없이도 초과 샤프 약 0.68 까지 우연히 나온다. 보정 후(DSR) 95% 를 넘는 전략은 없다.",
+              f"{_n}개를 시험하면 {_yrs:.0f}년 동안 실력 없이도 초과 샤프 약 {_luck:.2f} 까지 우연히 나온다. "
+              f"보정 후(DSR) 95% 를 넘는 것은 체결 불가로 제외한 ON05 하나뿐이고, 그것을 빼면 "
+              f"가장 높은 값이 {m.set_index('id').drop(EXCL, errors='ignore')['DSR'].max():.2f} 로 통과 전략이 없다.",
               "국면 판단 4개 정의는 모두 '국면 없음'보다 나쁘다(아래 메타 시스템 장)."]:
         doc.add_paragraph(t, style="List Bullet")
     doc.add_paragraph("판정 기준 구간 변경: 2011~2024 (2025~26 급등장 제외)", style="Heading 3")
@@ -293,7 +305,8 @@ def final_section(doc, m):
               "(참고: 나스닥100 보유 2011~24 연 16.6% — 미국 기술주·달러 강세의 사후 선택).",
               "주의: AA17·AA09·AA10 의 알파 일부도 미국 주식·달러가 2011~2024 한국보다 좋았던 데서 온 자산 선택 효과다. "
               "순수 한국 전략으로 남은 것은 LT32(연말 배당 교대, 베타 0.19) 하나다.",
-              "156개를 시험하면 우연만으로도 t > 2 가 3~4개 나올 수 있다. 최종 후보도 '유력'이지 '확정'이 아니며 모의투자로 추가 검증한다."]:
+              f"{_nt}개를 시험하면 우연만으로도 t > 2 가 {_et:.1f}개 나올 수 있다(실제 {_at}개). "
+              f"Harvey et al.(2016) 기준 t > 3 은 0개다. 최종 후보도 '유력'이지 '확정'이 아니며 모의투자로 추가 검증한다."]:
         doc.add_paragraph(t, style="List Bullet")
 
     doc.add_paragraph("통과 단계 (전체 기간 기준, 참고)", style="Heading 3")
