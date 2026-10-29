@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>항체주사제 희석 위험 선별</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 처방 조제 화면처럼 — 왼쪽 입력, 오른쪽 판정 카드, 아래 위험 지도와 전체 표 */
+:root{
+  --bg:#F4F6F9; --surface:#FFFFFF; --ink:#152238; --muted:#5B6678; --line:#DCE2EA;
+  --accent:#0B6E8C; --accent-soft:#E2F0F4;
+  --ok:#1E7A46; --ok-bg:#E3F3E9; --warn:#9A6200; --warn-bg:#FBF0D9; --bad:#B42318; --bad-bg:#FCE6E3;
+  --zone:#FBE3D8;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1621; --surface:#172131; --ink:#E6ECF4; --muted:#9AA7B8; --line:#2A3648;
+  --accent:#4FB3CF; --accent-soft:#16333E;
+  --ok:#5CC98B; --ok-bg:#163326; --warn:#E3B04B; --warn-bg:#3A2E14; --bad:#F27B6E; --bad-bg:#3D1C19;
+  --zone:#3A241C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1621; --surface:#172131; --ink:#E6ECF4; --muted:#9AA7B8; --line:#2A3648;
+  --accent:#4FB3CF; --accent-soft:#16333E;
+  --ok:#5CC98B; --ok-bg:#163326; --warn:#E3B04B; --warn-bg:#3A2E14; --bad:#F27B6E; --bad-bg:#3D1C19;
+  --zone:#3A241C; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header h1{font-size:1.55rem;margin:0;text-wrap:balance;letter-spacing:-.01em}
+header p{margin:.35rem 0 0;color:var(--muted);max-width:68ch}
+.eyebrow{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:20px}
+@media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;min-width:0}
+.panel h2{font-size:.95rem;margin:0 0 12px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+label{font-size:.82rem;color:var(--muted);font-weight:500}
+select,input[type=number]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:8px 10px;width:100%}
+select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.row{display:flex;gap:10px}.row>.field{flex:1;min-width:0}
+.hint{font-size:.76rem;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.verdict{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px 18px}
+.big{font-family:var(--f-mono);font-size:2.6rem;font-weight:500;line-height:1}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-weight:700;font-size:.9rem}
+.chip.ok{background:var(--ok-bg);color:var(--ok)}.chip.warn{background:var(--warn-bg);color:var(--warn)}.chip.bad{background:var(--bad-bg);color:var(--bad)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px}
+.fact{border-top:1px solid var(--line);padding-top:8px}
+.fact b{display:block;font-family:var(--f-mono);font-size:1.05rem;font-weight:500}
+.fact span{font-size:.76rem;color:var(--muted)}
+.bar{position:relative;height:12px;background:var(--bg);border:1px solid var(--line);border-radius:6px;margin:18px 0 6px;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;border-radius:6px}
+.bar em{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.notes{margin:12px 0 0;padding-left:18px;color:var(--muted);font-size:.82rem}
+.notes li{margin:2px 0}
+svg text{fill:var(--muted);font-family:var(--f-body)}
+.chartbox{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:.74rem;color:var(--muted);font-weight:500;letter-spacing:.02em}
+td.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+tbody tr{cursor:pointer}tbody tr:hover{background:var(--accent-soft)}tbody tr.sel{background:var(--accent-soft);font-weight:700}
+.tablebox{overflow-x:auto}
+footer{font-size:.76rem;color:var(--muted);max-width:90ch}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .25s ease}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">학술제 시연용 · 계산 기반 스크리닝</div>
+    <h1>항체주사제 희석 위험 선별</h1>
+    <p>제품과 환자 체중을 넣으면, 허가된 희석 조건에서 수액백 속 계면활성제가 응집 방지 기준을 넘는지와 항체 자체의 응집 경향(AI 서열 예측)을 함께 보여줍니다.</p>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="in-h">
+      <h2 id="in-h">조제 조건</h2>
+      <div class="field"><label for="prod">제품</label><select id="prod"></select></div>
+      <div class="field">
+        <label for="wt">환자 체중 <span class="mono" id="wtv"></span></label>
+        <input type="range" id="wt" min="30" max="120" step="1" value="50">
+      </div>
+      <div class="row">
+        <div class="field"><label for="dose" id="doselab">용량</label><input type="number" id="dose" step="any" min="0"></div>
+        <div class="field"><label for="vol">희석 부피 (mL)</label><input type="number" id="vol" step="any" min="1"></div>
+      </div>
+      <p class="hint" id="dosehint"></p>
+    </section>
+
+    <section class="panel" aria-live="polite">
+      <h2 id="res-name"></h2>
+      <div class="verdict"><div class="big" id="ratio"></div><div><span class="chip" id="chip"></span><div class="hint">계면활성제 ÷ 보호 기준 (1 이상이면 충족)</div></div></div>
+      <div class="bar" aria-hidden="true"><i id="barfill"></i><em id="barline"></em></div>
+      <div class="hint mono" id="barlab"></div>
+      <div class="facts">
+        <div class="fact"><b id="f-conc"></b><span>희석 후 항체 농도 (mg/mL)</span></div>
+        <div class="fact"><b id="f-ps"></b><span>희석 후 계면활성제 (mg/mL)</span></div>
+        <div class="fact"><b id="f-thr"></b><span>보호 기준 (mg/mL)</span></div>
+        <div class="fact"><b id="f-sap"></b><span>항체 표면 소수성 백분위 (DeepSP)</span></div>
+      </div>
+      <ul class="notes" id="notes"></ul>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>위험 지도 — 현재 체중 기준 20개 제품</h2>
+    <div class="chartbox"><svg id="map" viewBox="0 0 760 380" role="img" aria-label="계면활성제 비율과 표면 소수성 백분위의 2축 산점도" style="width:100%;min-width:520px;height:auto"></svg></div>
+  </section>
+
+  <section class="panel">
+    <h2>전체 제품 판정 <span class="hint" id="tblwt"></span></h2>
+    <div class="tablebox"><table>
+      <thead><tr><th>제품</th><th>유형</th><th>계면활성제</th><th style="text-align:right">희석 농도</th><th style="text-align:right">계면활성제</th><th style="text-align:right">기준 대비</th><th style="text-align:right">소수성 백분위</th><th>판정</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table></div>
+  </section>
+
+  <footer>
+    <p>계산식: 희석 후 계면활성제 = 원액 계면활성제 함량 × 희석 후 항체 농도 ÷ 원액 항체 농도. 판정은 이 환자 조건과 허가 최종농도 하한 중 더 묽은 쪽을 기준으로 합니다. 보호 기준은 수액백 교반 실험에서 응집을 막은 최소 PS20 농도(IgG1 0.003–0.01, IgG4 0.04 mg/mL; Sreedhara 2012·Kumru 2012, Xu 2025 재인용)로, PS80·폴록사머188 제품에는 참고값입니다. 자료: 식약처 허가사항, FDA 라벨, EU 제품정보(2026-10-29 추출), 항체 서열 Thera-SAbDab, 표면 소수성 DeepSP(2024). 연구용 계산이며 실제 조제 판단을 대신하지 않습니다.</p>
+  </footer>
+</div>
+
+<script>
+const D=[
+ {k:"허셉틴",inn:"trastuzumab",t:"일반 IgG",sub:"IgG1",s:"PS20",stock:21,ps:0.085,kg:2,note:"최저 허가 유지용량 2 mg/kg(주 1회). 3주 요법은 6 mg/kg",vol:250,sap:53.3},
+ {k:"퍼제타",inn:"pertuzumab",t:"일반 IgG",sub:"IgG1",s:"PS20",stock:30,ps:0.2,fx:420,vol:250,sap:68.0},
+ {k:"아바스틴",inn:"bevacizumab",t:"일반 IgG",sub:"IgG1",s:"PS20",stock:25,ps:0.4,kg:5,vol:100,lo:1.4,hi:16.5,sap:64.8},
+ {k:"사이람자",inn:"ramucirumab",t:"일반 IgG",sub:"IgG1",s:"PS80",stock:10,ps:0.1,kg:8,vol:250,sap:22.1},
+ {k:"레미케이드",inn:"infliximab",t:"일반 IgG",sub:"IgG1",s:"PS80",stock:10,ps:0.05,kg:3,vol:250,hi:4,sap:47.2},
+ {k:"악템라",inn:"tocilizumab",t:"일반 IgG",sub:"IgG1",s:"PS80",stock:20,ps:0.5,kg:4,vol:100,sap:29.2},
+ {k:"다잘렉스",inn:"daratumumab",t:"일반 IgG",sub:"IgG1",s:"PS20",stock:20,ps:0.4,kg:16,vol:1000,sap:80.7},
+ {k:"여보이",inn:"ipilimumab",t:"일반 IgG",sub:"IgG1",s:"PS80",stock:5,ps:0.1,kg:1,lo:1,hi:2,sap:52.8},
+ {k:"킨텔레스",inn:"vedolizumab",t:"일반 IgG",sub:"IgG1",s:"PS80",stock:60,ps:0.6,fx:300,vol:250,sap:62.3},
+ {k:"옵디보",inn:"nivolumab",t:"일반 IgG",sub:"IgG4",s:"PS80",stock:10,ps:0.2,fx:240,vol:160,lo:1,hi:10,sap:15.2},
+ {k:"키트루다",inn:"pembrolizumab",t:"일반 IgG",sub:"IgG4",s:"PS80",stock:25,ps:0.2,fx:200,lo:1,hi:10,sap:50.4},
+ {k:"티쎈트릭",inn:"atezolizumab",t:"일반 IgG",sub:"IgG1",s:"PS20",stock:60,ps:0.4,fx:840,vol:250,lo:3.2,hi:16.8,sap:59.2},
+ {k:"임핀지",inn:"durvalumab",t:"일반 IgG",sub:"IgG1",s:"PS80",stock:50,ps:0.2,kg:10,lo:1,hi:15,sap:50.9},
+ {k:"가싸이바",inn:"obinutuzumab",t:"일반 IgG",sub:"IgG1",s:"폴록사머188",stock:25,ps:0.2,fx:1000,vol:250,lo:0.4,hi:4,sap:93.1},
+ {k:"캐싸일라",inn:"trastuzumab emtansine",t:"ADC",sub:"IgG1",s:"PS20",stock:20,ps:0.2,kg:3.6,vol:250,sap:53.3,seq:"허셉틴과 같은 항체 서열이라 AI 점수가 같습니다. 약물 결합 효과는 서열로 반영되지 않습니다."},
+ {k:"엔허투",inn:"trastuzumab deruxtecan",t:"ADC",sub:"IgG1",s:"PS80",stock:20,ps:0.3,kg:5.4,vol:100,sap:53.3,seq:"허셉틴과 같은 항체 서열이라 AI 점수가 같습니다. 포도당액만 허용(생리식염수 금지)."},
+ {k:"파드셉",inn:"enfortumab vedotin",t:"ADC",sub:"IgG1",s:"PS20",stock:10,ps:0.2,kg:1.25,max:125,lo:0.3,hi:4,sap:12.0},
+ {k:"폴라이비",inn:"polatuzumab vedotin",t:"ADC",sub:"IgG1",s:"PS20",stock:20,ps:1.2,kg:1.4,lo:0.72,hi:2.7,sap:35.4},
+ {k:"애드세트리스",inn:"brentuximab vedotin",t:"ADC",sub:"IgG1",s:"PS80",stock:5,ps:0.2,kg:1.2,max:120,vol:150,lo:0.4,hi:1.8,sap:23.1},
+ {k:"리브리반트",inn:"amivantamab",t:"이중항체",sub:"IgG1",s:"PS80",stock:50,ps:0.6,fx:1050,vol:250,sap:42.3,seq:"이중항체: 두 결합 부위 중 소수성이 높은 쪽 값."}
+];
+const $=id=>document.getElementById(id);
+const thr=p=>p.sub==="IgG4"?0.04:0.01;
+const fmt=(x,d=4)=>x==null||!isFinite(x)?"—":x.toFixed(d);
+function defaults(p,w){
+  let dose=p.fx??(p.kg*w); if(p.max) dose=Math.min(dose,p.max);
+  const vol=p.vol??Math.round(dose/(p.lo||1));
+  return {dose,vol};
+}
+function calc(p,w,dose,vol){
+  const conc=dose/vol, psP=p.ps*conc/p.stock;
+  const psLo=p.lo?p.ps*p.lo/p.stock:null;
+  const worst=psLo!=null?Math.min(psP,psLo):psP;
+  const T=thr(p), r=worst/T;
+  let v="ok",label="충족";
+  if(r<1){ if(p.sub==="IgG1"&&worst>=0.003){v="warn";label="경계"} else {v="bad";label="미달"} }
+  return {conc,psP,psLo,worst,T,r,v,label};
+}
+const sel=$("prod"),wt=$("wt"),doseI=$("dose"),volI=$("vol");
+D.forEach((p,i)=>{const o=document.createElement("option");o.value=i;o.textContent=`${p.k} (${p.inn})`;sel.appendChild(o)});
+let cur=0, manual=false;
+function loadDefaults(){const p=D[cur],w=+wt.value,d=defaults(p,w);doseI.value=+d.dose.toFixed(1);volI.value=d.vol;manual=false;}
+function render(){
+  const p=D[cur],w=+wt.value; $("wtv").textContent=w+" kg";
+  if(!manual){const d=defaults(p,w);doseI.value=+d.dose.toFixed(1);volI.value=d.vol;}
+  const dose=+doseI.value, vol=+volI.value;
+  $("doselab").textContent=p.fx?"용량 (mg, 고정)":`용량 (mg) = ${p.kg} mg/kg × 체중`;
+  $("dosehint").textContent=(p.note?p.note+". ":"")+(p.vol?"":"허가문서에 부피가 없어 허가 최종농도 하한에 맞춘 부피를 기본값으로 넣었습니다.");
+  const c=calc(p,w,dose,vol);
+  $("res-name").textContent=`${p.k} · ${p.t} · ${p.sub} · ${p.s}`;
+  $("ratio").textContent=fmt(c.r,2);
+  const chip=$("chip");chip.className="chip "+c.v;chip.textContent=c.label;
+  const max=Math.max(2,c.r*1.15);
+  $("barfill").style.width=Math.min(100,c.r/max*100)+"%";$("barfill").style.background=`var(--${c.v==="ok"?"ok":c.v==="warn"?"warn":"bad"})`;
+  $("barline").style.left=(1/max*100)+"%";
+  $("barlab").textContent=`세로선 = 보호 기준 ${c.T} mg/mL`;
+  $("f-conc").textContent=fmt(c.conc,2);$("f-ps").textContent=fmt(c.worst,4);$("f-thr").textContent=c.T;$("f-sap").textContent=p.sap.toFixed(0)+"%";
+  const n=[];
+  if(p.lo&&c.conc<p.lo) n.push(`입력한 조건의 농도 ${fmt(c.conc,2)} mg/mL가 허가 최종농도 범위(${p.lo}–${p.hi??"?"} mg/mL)보다 낮습니다.`);
+  if(p.hi&&c.conc>p.hi) n.push(`입력한 조건의 농도가 허가 상한 ${p.hi} mg/mL를 넘습니다.`);
+  if(c.psLo!=null&&c.psLo<c.psP) n.push(`허가 최종농도 하한(${p.lo} mg/mL)으로 희석하면 계면활성제가 ${fmt(c.psLo,4)} mg/mL까지 낮아져 이 값으로 판정했습니다.`);
+  if(p.s!=="PS20") n.push(`${p.s} 제형이라 PS20 기준은 참고값입니다.`);
+  if(p.sub==="IgG4") n.push("IgG4는 선행연구에서 IgG1보다 4배 높은 농도가 필요했습니다(0.04 mg/mL).");
+  if(p.seq) n.push(p.seq);
+  if(p.sap>=50&&c.r<1) n.push("두 축 모두 위험 쪽입니다: 계면활성제 부족 + 응집 경향이 평균 이상인 항체.");
+  $("notes").innerHTML=n.map(x=>`<li>${x}</li>`).join("");
+  drawAll(w);
+}
+function drawAll(w){
+  const rows=D.map((p,i)=>{const d=defaults(p,w);const dd=i===cur?{dose:+doseI.value,vol:+volI.value}:d;return {p,i,...calc(p,w,dd.dose,dd.vol)}});
+  // table
+  $("tblwt").textContent=`(체중 ${w} kg, 각 제품 기본 용량·부피)`;
+  $("tbody").innerHTML=rows.slice().sort((a,b)=>a.r-b.r).map(o=>`<tr data-i="${o.i}" class="${o.i===cur?"sel":""}"><td>${o.p.k}</td><td>${o.p.t}${o.p.sub==="IgG4"?" · IgG4":""}</td><td>${o.p.s}</td><td class="num">${fmt(o.conc,2)}</td><td class="num">${fmt(o.worst,4)}</td><td class="num">${fmt(o.r,2)}</td><td class="num">${o.p.sap.toFixed(0)}%</td><td><span class="chip ${o.v}" style="font-size:.76rem;padding:2px 9px">${o.label}</span></td></tr>`).join("");
+  // map
+  const W=760,H=380,L=56,R=20,T=20,B=48,x0=Math.log10(0.1),x1=Math.log10(6);
+  const X=v=>L+(Math.log10(Math.min(6,Math.max(0.1,v)))-x0)/(x1-x0)*(W-L-R), Y=v=>T+(1-v/100)*(H-T-B);
+  const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const col={"일반 IgG":css("--accent"),"ADC":css("--warn"),"이중항체":css("--ok")};
+  let s=`<rect x="${L}" y="${Y(100)}" width="${X(1)-L}" height="${Y(50)-Y(100)}" fill="${css("--zone")}"/>`;
+  s+=`<text x="${L+6}" y="${Y(100)+16}" font-size="12" font-weight="700" style="fill:${css("--bad")}">고위험 영역</text>`;
+  [0.1,0.2,0.5,1,2,5].forEach(v=>{s+=`<line x1="${X(v)}" x2="${X(v)}" y1="${T}" y2="${H-B}" stroke="${css("--line")}" ${v===1?'stroke-dasharray="4 3" stroke-width="1.5"':''}/><text x="${X(v)}" y="${H-B+16}" font-size="11" text-anchor="middle">${v}</text>`});
+  [0,25,50,75,100].forEach(v=>{s+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${css("--line")}" ${v===50?'stroke-dasharray="4 3" stroke-width="1.5"':''}/><text x="${L-8}" y="${Y(v)+4}" font-size="11" text-anchor="end">${v}</text>`});
+  s+=`<text x="${(L+W-R)/2}" y="${H-8}" font-size="12" text-anchor="middle">계면활성제 ÷ 보호 기준 (로그 축, 1 미만 = 미달)</text>`;
+  s+=`<text transform="translate(14 ${(T+H-B)/2}) rotate(-90)" font-size="12" text-anchor="middle">표면 소수성 백분위 (AI)</text>`;
+  rows.forEach(o=>{const cx=X(o.r),cy=Y(o.p.sap),on=o.i===cur,c=col[o.p.t];
+    s+=o.p.sub==="IgG4"?`<rect x="${cx-6}" y="${cy-6}" width="12" height="12" fill="${c}" stroke="${css("--surface")}" stroke-width="1.5"/>`:`<circle cx="${cx}" cy="${cy}" r="${on?8:6}" fill="${c}" stroke="${on?css("--ink"):css("--surface")}" stroke-width="${on?2.5:1.5}"/>`;
+    s+=`<text x="${cx+9}" y="${cy-7}" font-size="${on?12.5:11}" ${on?`font-weight="700" style="fill:${css("--ink")}"`:""}>${o.p.k}</text>`;});
+  $("map").innerHTML=s;
+}
+sel.addEventListener("change",()=>{cur=+sel.value;manual=false;render()});
+wt.addEventListener("input",()=>{manual=false;render()});
+[doseI,volI].forEach(el=>el.addEventListener("input",()=>{manual=true;render()}));
+$("tbody").addEventListener("click",e=>{const tr=e.target.closest("tr");if(!tr)return;cur=+tr.dataset.i;sel.value=cur;manual=false;render()});
+try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>render())}catch(e){}
+new MutationObserver(()=>render()).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+cur=0;sel.value=0;render();
+</script>
+
+</html>
